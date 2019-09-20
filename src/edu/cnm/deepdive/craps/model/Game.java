@@ -1,5 +1,9 @@
 package edu.cnm.deepdive.craps.model;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 public class Game {
@@ -12,11 +16,13 @@ public class Game {
     this.rng = rng;
   }
 
-  public State play() {
+  public Round play() {
     State state = State.initial();
+    List<Roll> rolls = new LinkedList<>();
     int point = 0;
     do {
       Roll roll = new Roll(rng);
+      rolls.add(roll);
       state = state.next(point, roll);
       if (state == State.POINT && point == 0) {
         point = roll.getValue();
@@ -27,21 +33,25 @@ public class Game {
     } else {
       tally.losses();
     }
-    return state;
+    return new Round(state, rolls);
   }
 
   public int getWins() {
     return tally.getWins();
   }
+
   public int getLosses() {
     return tally.getLosses();
   }
+
   public int getPlays() {
     return tally.getPlays();
   }
+
   public double getPercentage() {
     return tally.getPercentage();
   }
+
   public enum State {
 
 
@@ -101,11 +111,11 @@ public class Game {
     private final int die1;
     private final int die2;
 
-    public Roll(Random rng) {
+    private Roll(Random rng) {
       this(1 + rng.nextInt(6), 1 + rng.nextInt(6));
     }
 
-    public Roll(int die1, int die2) {
+    private Roll(int die1, int die2) {
       this.die1 = die1;
       this.die2 = die2;
     }
@@ -125,6 +135,11 @@ public class Game {
 
     public int getValue() {
       return die1 + die2;
+    }
+
+    @Override
+    public String toString() {
+      return Arrays.toString(getDice());
     }
   }
 
@@ -164,4 +179,24 @@ public class Game {
     }
 
   }
+
+  public static class Round {
+
+    private final State state;
+    private final List<Roll> rolls;
+
+    private Round(State state, List<Roll> rolls) {
+      this.state = state;
+      this.rolls = Collections.unmodifiableList(rolls);
+    }
+
+    public State getState() {
+      return state;
+    }
+
+    public List<Roll> getRolls() {
+      return rolls;
+    }
+  }
+
 }
